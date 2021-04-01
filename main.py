@@ -1,5 +1,5 @@
 import numpy as np
-from for_mu_tau_test import CalcRHNParameters
+from CalcRHNpara import CalcRHNParameters
 
 
 def calcallparameters(t12, t23, t13, dm2, Dm2, abLambda, theta, phi, RorD):
