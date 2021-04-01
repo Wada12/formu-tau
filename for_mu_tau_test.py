@@ -203,30 +203,40 @@ class CalcRHNParameters(CalcNParameters):
 
         UPMNS = Vmatrix.dot(Pmatrix)
         self.matrix["UPMNS"] = UPMNS
-        self.UPMNS_inv = linalg.inv(UPMNS)
 
-        self.Nmatrix_inv = UPMNS @ Ndiagmatrix_inv @ UPMNS.T
-        self.RHNmatrix = - Diracmatirix @ self.Nmatrix_inv @ Diracmatirix
-        self.matrix["RHNmassMatrix[e+20]"] = self.RHNmatrix * 10 ** (-20)
+        Nmatrix_inv = UPMNS @ Ndiagmatrix_inv @ UPMNS.T
+        MR = - Diracmatirix @ Nmatrix_inv @ Diracmatirix
+        self.matrix["MR[e+20]"] = MR * 10 ** (-20)
+
         return self.matrix
 
     def diagRHNMassMatrix(self):
 
-        MR = self.matrix["RHNmassMatrix[e+20]"]
-        MRcon = np.conjugate(self.matrix["RHNmassMatrix[e+20]"].T)
-        self.MR2 = MRcon @ MR
-        M, u = linalg.eigh(self.MR2)
-        #diagMR2 = np.linalg.inv(u) @ self.MR2 @ u
-        T = u.T @ MR @ u     # T is already diagonalized
+        MR = self.matrix["MR[e+20]"]
+        MRcon = np.conjugate(self.matrix["MR[e+20]"].T)
+        MR2 = MRcon @ MR
+        M,omega = linalg.eigh(MR2)
+        T = omega.T @ MR @ omega     # T is already diagonalized
         ph = np.diag(np.exp(-1j* np.angle(np.diag(T))/2))
-        U = u @ ph
-
-        #print(U)
-        #print(np.linalg.inv(U))
-
-        self.diagMR = U.T @ MR @ U
+        self.Omega = omega @ ph
+        # MRdiag= self.Omega.T @ MR @ self.Omega
         self.output["RHNmass[e+20]"] = np.sqrt(M)
-        self.output["U"] = U
+        self.output["Omega"] = self.Omega
+
+        return self.output
+
+    def calcYukawaabsandphs(self):
+        Yukawadiag = np.diag([self.lambda_e,self.lambda_mu,self.lambda_tau])
+        Yukawa_hat = Yukawadiag @ np.linalg.inv(self.Omega)
+        Yukawa_abs = np.abs(Yukawa_hat)
+        Yukawa_phs = np.angle(Yukawa_hat)
+        self.output["Yukawa_hat"] = Yukawa_hat
+        self.output["Yukawa_abs"]= Yukawa_abs
+        self.output["Yukawa_phs"]= Yukawa_phs
+        #print(Yukawa_hat)
+        #print(self.Yukawa_abs)
+        #print(self.Yukawa_phs)
+
         return self.output
 
 
@@ -238,7 +248,6 @@ class CalcRHNParameters(CalcNParameters):
         print("---------")
 
     def show_matrix(self):
-
         print("--Matrix--")
         pprint.pprint(self.matrix, sort_dicts=False)
         print("---------")
@@ -257,5 +266,10 @@ class CalcRHNParameters(CalcNParameters):
 
 
 if __name__ == '__main__':
-    test = CalcRHNParameters(33.44, 49.2, 8.57, 7.42 * 10 ** (-5), 2.517 * 10 ** (-3), 1, 2, 3, 'deg')
-    print(test.t12)
+    test = CalcRHNParameters(33.44, 49.2, 8.57, 7.42 * 10 ** (-5), 2.517 * 10 ** (-3), 0.1, 60, 30, "deg")
+    test.calcinputTriAngle()
+    test.calcallNparameters()
+    test.calcRHNMassMatrix()
+    test.diagRHNMassMatrix()
+    test.calcYukawaabsandphs()
+    test.show_output(*["RHNmass[e+20]", "Omega"])
