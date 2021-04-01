@@ -63,7 +63,7 @@ class PreProcessing:
 
     def preProcessing(self, filename):
         # filename = "sample.dmg"
-        os.chdir("/Users/wadajuntaro/PycharmProjects/mu_tau_Ulysses")
+        os.chdir("./mu_tau_Ulysses")
         self.calcmutauPara()
         self.inputcards_generator(filename, self.Yukawa_abs, self.Yukawa_phs, self.RHNmass)
         self.recordInput(filename)
@@ -87,7 +87,7 @@ class ControlUlysses:
 
     def uls_calc(self, BE, input_filename,input_records=""):
         # input_filename = "sample.dmg"
-        os.chdir("/Users/wadajuntaro/PycharmProjects/mu_tau_Ulysses")
+        os.chdir("./mu_tau_Ulysses")
         file_name = os.path.splitext(os.path.basename(input_filename))[0]
         proc = subprocess.Popen(["uls-calc", '-m', BE, 'inputcards/' + input_filename]
                                 , stdout=subprocess.PIPE)
